@@ -39,13 +39,13 @@ app.use(morgan('dev'));
 //ROUTES
 //*************
 
-//TESTING ROUTE
+//Testing route
 
 app.get("/", (req, res) => {
     res.send(`Testing API at html://localhost${port}/api is funtional`)
 });
 
-//OTHER ROUTES
+//Creating custom user
 
 app.get('/setup', (req, res) => {
 
@@ -67,31 +67,52 @@ app.get('/setup', (req, res) => {
     
 });
 
-//DIOGO's CODE
-//app.use('/api', apiRoute);
-// app.use(cors());
-// let apiRoute = express.Router(cors());
-// app.use('/api', apiRoute);
+//Other routes
+
+let apiRoutes = express.Router();
+
+apiRoutes.get("/", (req, res) => {
+    res.json({message: "Second test, for the api routes"})
+});
+
+apiRoutes.get("/users", (req, res) => {
+    User.find({}, (err, users) => {
+        if (err) {
+            throw err
+        }
+        res.json(users)
+    })
+});
+
+apiRoutes.post('/authenticate', (req, ers) => {
+    User.findOne({name: req.body.name}, (err, user) => {
+        if (err) {
+            throw err
+        };
+
+        if (!user) {
+            res.json({success: false, message: "Authntication failed. User not found"});
+        } else if (user) {
+            if (user.password != req.body.password) {
+                res.json({success: false, message: "Authentication failed. Inncorrect password"})
+            } else {
+                const payload = {
+                    admin: user.admin,
+                };
+
+                let token = jwt.sign(payload, app.get('superSecret'), {
+                    expiresInMinutes = 1440
+                });
+
+                res.json({success: true, message: "Have your token", token: token})
+            }
+        }
+    });
+});
+
+app.use('/api', apiRoutes);
 
 
-// app.get('/create', function (req, res) {
-//     var userExemple = new User({
-//         name: 'swartz12',
-//         password: 'swartz12',
-//         admin: true
-//     });
-
-//     console.log('test1');
-//     userExemple.save(function (error) {
-//         if (error) throw error;
-//         console.log('New user create with success');
-//         res.json({
-//             success: true
-//         });
-
-//     });
-//     console.log('test2')
-// });
 
 
 
